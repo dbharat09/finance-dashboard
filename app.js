@@ -103,7 +103,9 @@ $("btn-create-household").onclick = async () => {
     });
     householdId = href.id;
     await setDoc(doc(db, "invites", code), { householdId });
-    await setDoc(doc(db, "households", householdId, "meta", "plan"), structuredClone(DEFAULT_PLAN));
+    const newPlan = structuredClone(DEFAULT_PLAN);
+    newPlan.startMonth = monthKey(new Date());
+    await setDoc(doc(db, "households", householdId, "meta", "plan"), newPlan);
     await setDoc(doc(db, "users", user.uid), { householdId });
     subscribeHousehold();
     show("dash-view");
@@ -150,19 +152,29 @@ function spentIn(catId, key) {
   return expenses.filter((e) => e.categoryId === catId && e.date.startsWith(key))
     .reduce((a, e) => a + Number(e.amount), 0);
 }
+// Carry-over only counts from the month tracking started (the plan's
+// startMonth, stamped when the household is created). Months before that
+// must not mint phantom budget out of empty history.
+function planAnchor() {
+  if (plan.startMonth) return plan.startMonth;
+  const cur = monthKey(new Date());
+  if (!expenses.length) return cur;
+  const earliest = expenses.reduce((a, e) => (e.date.slice(0, 7) < a ? e.date.slice(0, 7) : a), "9999-99");
+  return earliest < cur ? earliest : cur;
+}
 // Effective budget for a category in a month: base budget plus rolled-over
 // leftovers from previous months (only when carryOver is on). Overspending
-// never carries. Chain is capped at 24 months back.
+// never carries.
 function effectiveBudget(cat, key) {
   if (!cat.carryOver) return { effective: cat.budget, carriedIn: 0 };
-  const months = [];
-  let k = key;
-  for (let i = 0; i < 24; i++) { k = shiftMonth(k, -1); months.unshift(k); }
-  let eff = cat.budget, carriedIn = 0;
-  for (const m of months) {
+  const anchor = planAnchor();
+  if (key <= anchor) return { effective: cat.budget, carriedIn: 0 };
+  let eff = cat.budget, carriedIn = 0, m = anchor;
+  while (m < key) {
     const leftover = Math.max(0, eff - spentIn(cat.id, m));
     carriedIn = leftover;
     eff = cat.budget + leftover;
+    m = shiftMonth(m, 1);
   }
   return { effective: eff, carriedIn };
 }

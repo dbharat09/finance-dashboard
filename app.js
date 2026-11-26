@@ -138,7 +138,12 @@ function subscribeHousehold() {
     if (s.exists()) $("invite-chip").textContent = "Invite code: " + s.data().inviteCode;
   }));
   unsubscribers.push(onSnapshot(doc(db, "households", householdId, "meta", "plan"), (s) => {
-    if (s.exists()) { plan = s.data(); render(); }
+    if (s.exists()) {
+      plan = s.data();
+      const anchor = planAnchor();
+      if (viewMonth < anchor) viewMonth = anchor;
+      render();
+    }
   }));
   const q = query(collection(db, "households", householdId, "expenses"), orderBy("date", "desc"));
   unsubscribers.push(onSnapshot(q, (s) => {
@@ -258,6 +263,7 @@ function render() {
   // Plan editor
   $("plan-income").value = plan.income;
   $("plan-savings").value = plan.savingsTarget;
+  $("plan-start").value = planAnchor();
   $("plan-categories").innerHTML = plan.categories.map((c, i) =>
     `<div class="plan-row"><span class="dot" style="background:${c.color}"></span>
      <span>${c.name}</span>
@@ -293,6 +299,7 @@ $("btn-save-plan").onclick = async () => {
   await setDoc(doc(db, "households", householdId, "meta", "plan"), {
     income: Number($("plan-income").value || 0),
     savingsTarget: Number($("plan-savings").value || 0),
+    startMonth: $("plan-start").value || plan.startMonth || monthKey(new Date()),
     categories,
   });
 };

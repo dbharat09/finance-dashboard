@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Finance Dashboard</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <div id="loading" class="center-card">Loading…</div>
+
+  <!-- Auth -->
+  <section id="auth-view" class="center-card hidden">
+    <h1>💰 Finance Dashboard</h1>
+    <p class="muted">Sign in to see your household budget. Only people you invite can see this data.</p>
+    <label>Email <input id="auth-email" type="email" autocomplete="email" /></label>
+    <label>Password <input id="auth-password" type="password" autocomplete="current-password" /></label>
+    <div class="row">
+      <button id="btn-signin" class="primary">Sign in</button>
+      <button id="btn-signup">Create account</button>
+    </div>
+    <p id="auth-error" class="error"></p>
+  </section>
+
+  <!-- Household setup -->
+  <section id="household-view" class="center-card hidden">
+    <h1>🏠 Your household</h1>
+    <p class="muted">Create a household, or join one with an invite code from your partner.</p>
+    <button id="btn-create-household" class="primary wide">Create my household</button>
+    <div class="divider">or</div>
+    <label>Invite code <input id="join-code" type="text" placeholder="e.g. K7P2QX" style="text-transform:uppercase" /></label>
+    <button id="btn-join-household" class="wide">Join household</button>
+    <p id="household-error" class="error"></p>
+    <button id="btn-signout-2" class="link">Sign out</button>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="dash-view" class="hidden">
+    <header>
+      <h1>💰 Finance Dashboard</h1>
+      <div class="header-right">
+        <span id="invite-chip" class="chip" title="Share this code so your partner can join"></span>
+        <button id="btn-signout" class="link">Sign out</button>
+      </div>
+    </header>
+    <p id="plan-line" class="plan-line"></p>
+
+    <div class="month-nav">
+      <button id="month-prev">←</button>
+      <h2 id="month-title"></h2>
+      <button id="month-next">→</button>
+      <button id="month-today" class="link">Jump to current month</button>
+    </div>
+
+    <div class="cards">
+      <div class="card summary"><span class="label">Income</span><span id="sum-income" class="big">$0</span></div>
+      <div class="card summary"><span class="label">Total spent</span><span id="sum-spent" class="big">$0</span></div>
+      <div class="card summary"><span class="label">Left to spend</span><span id="sum-left" class="big">$0</span></div>
+      <div class="card summary"><span class="label">Projected savings</span><span id="sum-savings" class="big">$0</span>
+        <div class="bar"><div id="savings-bar" class="fill"></div></div>
+        <span id="savings-note" class="muted small"></span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Spending by category</h3>
+        <div class="chart-wrap"><canvas id="pie"></canvas></div>
+        <ul id="pie-legend" class="legend"></ul>
+        <p id="pie-empty" class="muted hidden">No expenses logged this month yet.</p>
+      </div>
+
+      <div class="card">
+        <h3>Add expense</h3>
+        <form id="expense-form">
+          <label>Date <input id="exp-date" type="date" required /></label>
+          <label>Amount ($) <input id="exp-amount" type="number" min="0.01" step="0.01" required /></label>
+          <label>Category <select id="exp-category"></select></label>
+          <label>Note (optional) <input id="exp-note" type="text" placeholder="e.g. Costco" /></label>
+          <button class="primary wide" type="submit">Add expense</button>
+        </form>
+        <h3 class="mt">This month's expenses</h3>
+        <ul id="expense-list" class="expenses"></ul>
+      </div>
+    </div>
+
+    <h3 class="section-title">Category budgets</h3>
+    <div id="category-cards" class="cards categories"></div>
+
+    <div class="card">
+      <h3>Monthly plan &amp; budgets</h3>
+      <div class="row wrap">
+        <label>Monthly income ($) <input id="plan-income" type="number" min="0" step="1" /></label>
+        <label>Savings target ($) <input id="plan-savings" type="number" min="0" step="1" /></label>
+        <button id="btn-save-plan" class="primary">Save plan</button>
+      </div>
+      <div id="plan-categories"></div>
+      <p class="muted small">Carry-over ON: whatever you don't spend in that category rolls into next month's budget for the same category. Overspending never carries over.</p>
+    </div>
+  </section>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

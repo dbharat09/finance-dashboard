@@ -5,7 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc,
-  deleteDoc, onSnapshot, query, orderBy, serverTimestamp, arrayUnion,
+  deleteDoc, onSnapshot, query, orderBy, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
@@ -119,17 +119,21 @@ $("btn-join-household").onclick = async () => {
     const isnap = await getDoc(doc(db, "invites", code));
     if (!isnap.exists()) { $("household-error").textContent = "That invite code was not found."; return; }
     const hid = isnap.data().householdId;
-    const href = doc(db, "households", hid);
-    // Do NOT read the household doc first: privacy rules only let members
-    // read it, and she is not a member yet. arrayUnion adds her without a
-    // read; the rules verify the invite code on the write itself.
+    // Joining = creating her own member document with the invite code as
+    // proof. (Appending to the household's members array from outside does
+    // not work: Firestore rules cannot verify arrayUnion transforms, and
+    // non-members may not read the household doc to rebuild the array.)
+    const mref = doc(db, "households", hid, "members", user.uid);
     try {
-      await updateDoc(href, { members: arrayUnion(user.uid) });
-    } catch (e) { /* already a member is fine — verified just below */ }
-    const hsnap = await getDoc(href);
-    if (!hsnap.exists() || !(hsnap.data().members || []).includes(user.uid)) {
-      $("household-error").textContent = "Could not join that household. Check the code and try again.";
-      return;
+      await setDoc(mref, { code, joinedAt: serverTimestamp() });
+    } catch (e) {
+      // Re-joining: the create is denied because the doc already exists,
+      // but then reading it back succeeds because she is a member.
+      const msnap = await getDoc(mref).catch(() => null);
+      if (!msnap || !msnap.exists()) {
+        $("household-error").textContent = "Could not join that household. Check the code and try again.";
+        return;
+      }
     }
     householdId = hid;
     await setDoc(doc(db, "users", user.uid), { householdId });

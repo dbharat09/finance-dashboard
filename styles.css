@@ -1,0 +1,56 @@
+:root {
+  --bg: #f6f7fb; --card: #ffffff; --text: #1c2333; --muted: #6b7280;
+  --border: #e5e7eb; --accent: #4f46e5; --danger: #dc2626; --ok: #16a34a;
+  --shadow: 0 6px 24px rgba(28, 35, 51, 0.07);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0f1220; --card: #1a1f33; --text: #eef0f7; --muted: #9aa3b8; --border: #2a3050; --shadow: 0 6px 24px rgba(0,0,0,.35); }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+#app { max-width: 1080px; margin: 0 auto; padding: 20px 16px 48px; }
+.hidden { display: none !important; }
+.muted { color: var(--muted); } .small { font-size: .85rem; } .error { color: var(--danger); min-height: 1.2em; }
+.center-card { max-width: 420px; margin: 8vh auto; background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 28px; box-shadow: var(--shadow); }
+label { display: block; margin: 10px 0; font-size: .92rem; }
+input, select { width: 100%; margin-top: 4px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); color: var(--text); font-size: 1rem; }
+button { padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; font-size: .95rem; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button.link { border: none; background: none; color: var(--accent); padding: 4px 6px; }
+button.wide { width: 100%; margin-top: 8px; }
+.row { display: flex; gap: 10px; align-items: end; } .row.wrap { flex-wrap: wrap; } .row label { flex: 1; min-width: 150px; }
+.divider { text-align: center; color: var(--muted); margin: 14px 0 4px; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.chip { background: var(--card); border: 1px dashed var(--accent); color: var(--accent); border-radius: 999px; padding: 6px 12px; font-size: .85rem; font-weight: 600; }
+.plan-line { color: var(--muted); margin-top: 2px; }
+.month-nav { display: flex; align-items: center; gap: 12px; margin: 14px 0; }
+.month-nav h2 { margin: 0; font-size: 1.3rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 18px; box-shadow: var(--shadow); }
+.summary .label { color: var(--muted); font-size: .85rem; display: block; }
+.summary .big { font-size: 1.7rem; font-weight: 700; display: block; margin-top: 4px; }
+.bar { height: 10px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 10px; }
+.bar .fill { height: 100%; background: var(--ok); border-radius: 999px; transition: width .3s; }
+.bar .fill.over { background: var(--danger); }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+.chart-wrap { max-width: 320px; margin: 0 auto; }
+.legend { list-style: none; padding: 0; margin: 12px 0 0; }
+.legend li { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: .92rem; }
+.dot { width: 12px; height: 12px; border-radius: 4px; display: inline-block; flex: none; }
+.legend .amt { margin-left: auto; font-weight: 600; }
+.expenses { list-style: none; padding: 0; margin: 0; }
+.expenses li { display: flex; gap: 8px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .94rem; }
+.expenses .amt { margin-left: auto; font-weight: 600; white-space: nowrap; }
+.expenses button { padding: 2px 8px; font-size: .8rem; }
+.mt { margin-top: 22px; } .section-title { margin: 22px 0 10px; }
+.cat-card .top { display: flex; align-items: baseline; gap: 8px; }
+.cat-card .name { font-weight: 700; }
+.cat-card .spent { margin-left: auto; font-weight: 700; }
+.cat-card .meta { color: var(--muted); font-size: .85rem; margin-top: 4px; }
+.cat-card .carried { color: var(--accent); font-size: .85rem; font-weight: 600; }
+.plan-row { display: grid; grid-template-columns: 14px 1fr 110px auto; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.plan-row input { margin: 0; }
+.switch { display: flex; align-items: center; gap: 6px; font-size: .85rem; white-space: nowrap; }
+.switch input { width: auto; margin: 0; }

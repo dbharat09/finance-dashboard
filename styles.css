@@ -45,6 +45,11 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .expenses .amt { margin-left: auto; font-weight: 600; white-space: nowrap; }
 .expenses button { padding: 2px 8px; font-size: .8rem; }
 .mt { margin-top: 22px; } .section-title { margin: 22px 0 10px; }
+.accordion { margin-top: 28px; }
+.accordion-head { display: flex; justify-content: space-between; align-items: center; width: 100%; background: none; border: none; padding: 0; cursor: pointer; color: inherit; font: inherit; font-weight: 700; font-size: 1.05rem; text-align: left; }
+.accordion-head .chev { transition: transform .2s ease; color: var(--muted); }
+.accordion.open .accordion-head .chev { transform: rotate(180deg); }
+.accordion-body { margin-top: 14px; }
 .cat-card .top { display: flex; align-items: baseline; gap: 8px; }
 .cat-card .name { font-weight: 700; }
 .cat-card .spent { margin-left: auto; font-weight: 700; }

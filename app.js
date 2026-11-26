@@ -300,6 +300,13 @@ $("expense-form").onsubmit = async (ev) => {
   $("exp-amount").value = ""; $("exp-note").value = "";
 };
 
+$("plan-toggle").onclick = () => {
+  const card = $("plan-card");
+  const open = card.classList.toggle("open");
+  $("plan-body").classList.toggle("hidden", !open);
+  $("plan-toggle").setAttribute("aria-expanded", String(open));
+};
+
 $("btn-save-plan").onclick = async () => {
   const categories = plan.categories.map((c, i) => ({
     ...c,

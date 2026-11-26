@@ -1,0 +1,59 @@
+rules_version = '2';
+// Finance Dashboard — household sharing rules.
+// Paste into: Firebase console -> Firestore Database -> Rules -> Publish.
+// Only signed-in users who are members of a household can see its data.
+// A signed-in user may join a household only by presenting its invite code.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(hid) {
+      return signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/households/$(hid)).data.members;
+    }
+
+    // uid -> household pointer for the signed-in user
+    match /users/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Invite codes: any signed-in user may look up a code (to join) and the
+    // household creator may create/delete the code for their own household.
+    match /invites/{code} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.householdId is string;
+      allow delete: if signedIn()
+        && resource.data.householdId is string
+        && request.auth.uid in get(/databases/$(database)/documents/households/$(resource.data.householdId)).data.members;
+    }
+
+    match /households/{hid} {
+      // Create: creator must be the first member.
+      allow create: if signedIn()
+        && request.resource.data.members == [request.auth.uid];
+      // Read: members only.
+      allow read: if isMember(hid);
+      // Update: members, OR a signed-in user adding ONLY themselves to
+      // members when a valid invite doc points at this household.
+      allow update: if isMember(hid)
+        || (signedIn()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+            && request.auth.uid in request.resource.data.members
+            && !(request.auth.uid in resource.data.members)
+            && exists(/databases/$(database)/documents/invites/$(resource.data.inviteCode))
+            && get(/databases/$(database)/documents/invites/$(resource.data.inviteCode)).data.householdId == hid);
+      allow delete: if false;
+
+      match /meta/{docId} {
+        allow read, write: if isMember(hid);
+      }
+      match /expenses/{expenseId} {
+        allow read, write: if isMember(hid);
+      }
+    }
+  }
+}

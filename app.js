@@ -5,7 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc,
-  deleteDoc, onSnapshot, query, orderBy, serverTimestamp,
+  deleteDoc, onSnapshot, query, orderBy, serverTimestamp, arrayUnion,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
@@ -120,10 +120,16 @@ $("btn-join-household").onclick = async () => {
     if (!isnap.exists()) { $("household-error").textContent = "That invite code was not found."; return; }
     const hid = isnap.data().householdId;
     const href = doc(db, "households", hid);
+    // Do NOT read the household doc first: privacy rules only let members
+    // read it, and she is not a member yet. arrayUnion adds her without a
+    // read; the rules verify the invite code on the write itself.
+    try {
+      await updateDoc(href, { members: arrayUnion(user.uid) });
+    } catch (e) { /* already a member is fine — verified just below */ }
     const hsnap = await getDoc(href);
-    const members = hsnap.data().members || [];
-    if (!members.includes(user.uid)) {
-      await updateDoc(href, { members: [...members, user.uid] });
+    if (!hsnap.exists() || !(hsnap.data().members || []).includes(user.uid)) {
+      $("household-error").textContent = "Could not join that household. Check the code and try again.";
+      return;
     }
     householdId = hid;
     await setDoc(doc(db, "users", user.uid), { householdId });

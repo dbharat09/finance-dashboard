@@ -89,16 +89,21 @@
     <h3 class="section-title">Category budgets</h3>
     <div id="category-cards" class="cards categories"></div>
 
-    <div class="card">
-      <h3>Monthly plan &amp; budgets</h3>
-      <div class="row wrap">
-        <label>Monthly income ($) <input id="plan-income" type="number" min="0" step="1" /></label>
-        <label>Savings target ($) <input id="plan-savings" type="number" min="0" step="1" /></label>
-        <label>Tracking starts (month) <input id="plan-start" type="month" /></label>
-        <button id="btn-save-plan" class="primary">Save plan</button>
+    <div class="card accordion" id="plan-card">
+      <button class="accordion-head" id="plan-toggle" type="button" aria-expanded="false">
+        <span>Monthly plan &amp; budgets</span>
+        <span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="accordion-body hidden" id="plan-body">
+        <div class="row wrap">
+          <label>Monthly income ($) <input id="plan-income" type="number" min="0" step="1" /></label>
+          <label>Savings target ($) <input id="plan-savings" type="number" min="0" step="1" /></label>
+          <label>Tracking starts (month) <input id="plan-start" type="month" /></label>
+          <button id="btn-save-plan" class="primary">Save plan</button>
+        </div>
+        <div id="plan-categories"></div>
+        <p class="muted small">Carry-over ON: whatever you don't spend in that category rolls into next month's budget for the same category. Overspending never carries over.</p>
       </div>
-      <div id="plan-categories"></div>
-      <p class="muted small">Carry-over ON: whatever you don't spend in that category rolls into next month's budget for the same category. Overspending never carries over.</p>
     </div>
   </section>
 </div>

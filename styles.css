@@ -33,10 +33,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .bar { height: 10px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 10px; }
 .bar .fill { height: 100%; background: var(--ok); border-radius: 999px; transition: width .3s; }
 .bar .fill.over { background: var(--danger); }
-.savings-card { margin-top: 14px; }
-.savings-card h3 { margin-top: 0; }
-.savings-stats { display: flex; gap: 36px; flex-wrap: wrap; margin: 10px 0 4px; }
-.savings-card form { margin-top: 6px; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
 @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
 .chart-wrap { max-width: 320px; margin: 0 auto; }

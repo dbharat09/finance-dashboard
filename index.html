@@ -103,7 +103,8 @@
           <label>Amount ($) <input id="exp-amount" type="number" min="0.01" step="0.01" required /></label>
           <label>Category <select id="exp-category"></select></label>
           <label>Note (optional) <input id="exp-note" type="text" placeholder="e.g. Costco" /></label>
-          <button class="primary wide" type="submit">Add expense</button>
+          <button class="primary wide" type="submit" id="exp-submit">Add expense</button>
+          <button class="wide hidden" type="button" id="exp-cancel">Cancel edit</button>
         </form>
       </div>
     </div>

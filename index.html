@@ -81,13 +81,21 @@
           <label>Note (optional) <input id="exp-note" type="text" placeholder="e.g. Costco" /></label>
           <button class="primary wide" type="submit">Add expense</button>
         </form>
-        <h3 class="mt">This month's expenses</h3>
-        <ul id="expense-list" class="expenses"></ul>
       </div>
     </div>
 
     <h3 class="section-title">Category budgets</h3>
     <div id="category-cards" class="cards categories"></div>
+
+    <div class="card accordion" id="expenses-card">
+      <button class="accordion-head" id="expenses-toggle" type="button" aria-expanded="false">
+        <span>This month's expenses</span>
+        <span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="accordion-body hidden" id="expenses-body">
+        <ul id="expense-list" class="expenses"></ul>
+      </div>
+    </div>
 
     <div class="card accordion" id="plan-card">
       <button class="accordion-head" id="plan-toggle" type="button" aria-expanded="false">

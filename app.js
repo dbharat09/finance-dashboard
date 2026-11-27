@@ -407,10 +407,24 @@ async function deleteCategory(idx) {
   const cat = plan.categories[idx];
   if (!cat) return;
   $("cat-error").textContent = "";
-  if (expenses.some((e) => e.categoryId === cat.id)) {
-    $("cat-error").textContent =
-      `"${cat.name}" has expenses logged under it, so it can't be deleted. Delete or reassign those expenses first — or just rename it.`;
-    return;
+  const affected = expenses.filter((e) => e.categoryId === cat.id);
+  if (affected.length) {
+    // Deleting is still possible: the logged expenses move to
+    // Buffer / Miscellaneous so no spending history is lost.
+    const buffer = plan.categories.find((c) => c.id === "buffer");
+    if (!buffer || buffer.id === cat.id) {
+      $("cat-error").textContent =
+        `"${cat.name}" has expenses logged under it and there is no Buffer category to move them to, so it can't be deleted.`;
+      return;
+    }
+    const total = affected.reduce((a, e) => a + Number(e.amount), 0);
+    const ok = confirm(
+      `"${cat.name}" has ${affected.length} expense(s) logged under it (${money(total)}).\n\n` +
+      `Delete the category and move those expenses to "Buffer / Miscellaneous"?`);
+    if (!ok) return;
+    for (const e of affected) {
+      await updateDoc(doc(db, "households", householdId, "expenses", e.id), { categoryId: buffer.id });
+    }
   }
   const state = readPlanEditor();
   state.categories.splice(idx, 1);

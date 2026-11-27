@@ -66,7 +66,7 @@
       <div class="card summary"><span class="label">Income</span><span id="sum-income" class="big">$0</span></div>
       <div class="card summary"><span class="label">Total spent</span><span id="sum-spent" class="big">$0</span></div>
       <div class="card summary"><span class="label">Left to spend</span><span id="sum-left" class="big">$0</span></div>
-      <div class="card summary"><span class="label">Projected savings</span><span id="sum-savings" class="big">$0</span>
+      <div class="card summary"><span class="label">Saved this month</span><span id="sum-savings" class="big">$0</span>
         <div class="bar"><div id="savings-bar" class="fill"></div></div>
         <span id="savings-note" class="muted small"></span>
       </div>
@@ -119,6 +119,12 @@
           <button id="btn-save-plan" class="primary">Save plan</button>
         </div>
         <div id="plan-categories"></div>
+        <div class="row wrap">
+          <label>New category name <input id="new-cat-name" type="text" placeholder="e.g. Savings" /></label>
+          <label>Budget ($) <input id="new-cat-budget" type="number" min="0" step="1" /></label>
+          <button id="btn-add-cat" type="button">Add category</button>
+        </div>
+        <p id="cat-error" class="error"></p>
         <p class="muted small">Carry-over ON: whatever you don't spend in that category rolls into next month's budget for the same category. Overspending never carries over.</p>
       </div>
     </div>

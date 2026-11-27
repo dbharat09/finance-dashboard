@@ -205,8 +205,14 @@ function render() {
     const { effective, carriedIn } = effectiveBudget(cat, viewMonth);
     effTotal += effective;
     const spent = spentIn(cat.id, viewMonth);
-    return { cat, effective, carriedIn, spent, remaining: effective - spent };
+    // Closeness to the limit: share of the effective budget already used.
+    // A category with spending but no budget counts as fully blown.
+    const ratio = effective > 0 ? spent / effective : (spent > 0 ? Infinity : 0);
+    return { cat, effective, carriedIn, spent, remaining: effective - spent, ratio };
   });
+  // Display order only (plan order is untouched): the categories closest
+  // to blowing their budget float to the top so they are seen first.
+  perCat.sort((a, b) => (b.ratio - a.ratio) || (b.spent - a.spent));
 
   $("plan-line").textContent =
     `Income ${money(plan.income)} − savings target ${money(plan.savingsTarget)} = ${money(plan.income - plan.savingsTarget)} spending plan` +
@@ -225,14 +231,21 @@ function render() {
     : `Below the ${money(plan.savingsTarget)} target`;
 
   // Category cards
-  $("category-cards").innerHTML = perCat.map(({ cat, effective, carriedIn, spent, remaining }) => {
+  $("category-cards").innerHTML = perCat.map(({ cat, effective, carriedIn, spent, remaining, ratio }) => {
     const p = effective > 0 ? Math.min(100, (spent / effective) * 100) : 0;
+    const tag = spent > effective
+      ? `<span class="tag over-tag">Over budget</span>`
+      : ratio >= 0.85 ? `<span class="tag warn-tag">Near limit</span>` : "";
+    const pctText = effective > 0 ? `${Math.round(ratio * 100)}% used` : (spent > 0 ? "no budget set" : "0% used");
+    const meta = spent > effective
+      ? `${money(spent - effective)} over the ${money(effective)} budget · ${pctText}`
+      : `${money(remaining)} left of ${money(effective)} budget · ${pctText}`;
     return `<div class="card cat-card">
       <div class="top"><span class="dot" style="background:${cat.color}"></span>
-      <span class="name">${cat.name}</span><span class="spent">${money(spent)}</span></div>
+      <span class="name">${cat.name}</span>${tag}<span class="spent">${money(spent)}</span></div>
       ${carriedIn > 0 ? `<div class="carried">+${money(carriedIn)} carried from last month</div>` : ""}
       <div class="bar"><div class="fill ${spent > effective ? "over" : ""}" style="width:${p}%;background:${spent > effective ? "" : cat.color}"></div></div>
-      <div class="meta">${money(remaining)} left of ${money(effective)} budget</div>
+      <div class="meta">${meta}</div>
     </div>`;
   }).join("");
 

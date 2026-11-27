@@ -58,7 +58,8 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .cat-card .spent { margin-left: auto; font-weight: 700; }
 .cat-card .meta { color: var(--muted); font-size: .85rem; margin-top: 4px; }
 .cat-card .carried { color: var(--accent); font-size: .85rem; font-weight: 600; }
-.plan-row { display: grid; grid-template-columns: 14px 1fr 110px auto; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.plan-row { display: grid; grid-template-columns: 14px 1fr 110px auto 34px; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); }
 .plan-row input { margin: 0; }
+.plan-row button { padding: 4px 8px; font-size: .8rem; }
 .switch { display: flex; align-items: center; gap: 6px; font-size: .85rem; white-space: nowrap; }
 .switch input { width: auto; margin: 0; }

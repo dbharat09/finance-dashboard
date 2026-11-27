@@ -294,10 +294,14 @@ function render() {
   $("plan-start").value = planAnchor();
   $("plan-categories").innerHTML = plan.categories.map((c, i) =>
     `<div class="plan-row"><span class="dot" style="background:${c.color}"></span>
-     <span>${c.name}</span>
+     <input type="text" value="${c.name}" data-name="${i}" aria-label="Category name" />
      <input type="number" min="0" step="1" value="${c.budget}" data-budget="${i}" />
      <label class="switch"><input type="checkbox" data-carry="${i}" ${c.carryOver ? "checked" : ""} /> carry over</label>
+     <button type="button" data-delcat="${i}" title="Delete category">✕</button>
    </div>`).join("");
+  document.querySelectorAll("[data-delcat]").forEach((b) => {
+    b.onclick = () => deleteCategory(Number(b.dataset.delcat));
+  });
 }
 
 // ---------- Events ----------
@@ -359,16 +363,56 @@ $("expenses-toggle").onclick = () => {
   $("expenses-toggle").setAttribute("aria-expanded", String(open));
 };
 
-$("btn-save-plan").onclick = async () => {
-  const categories = plan.categories.map((c, i) => ({
-    ...c,
-    budget: Number(document.querySelector(`[data-budget="${i}"]`).value || 0),
-    carryOver: document.querySelector(`[data-carry="${i}"]`).checked,
-  }));
-  await setDoc(doc(db, "households", householdId, "meta", "plan"), {
+// ---------- Plan editor: save / add category / edit / delete ----------
+function readPlanEditor() {
+  return {
     income: Number($("plan-income").value || 0),
     savingsTarget: Number($("plan-savings").value || 0),
     startMonth: $("plan-start").value || plan.startMonth || monthKey(new Date()),
-    categories,
+    categories: plan.categories.map((c, i) => ({
+      ...c,
+      name: (document.querySelector(`[data-name="${i}"]`).value || c.name).trim() || c.name,
+      budget: Number(document.querySelector(`[data-budget="${i}"]`).value || 0),
+      carryOver: document.querySelector(`[data-carry="${i}"]`).checked,
+    })),
+  };
+}
+function savePlanDoc(state) {
+  return setDoc(doc(db, "households", householdId, "meta", "plan"), state);
+}
+
+$("btn-save-plan").onclick = async () => { await savePlanDoc(readPlanEditor()); };
+
+const CAT_COLORS = ["#eab308", "#f43f5e", "#0ea5e9", "#a855f7", "#84cc16", "#fb923c", "#2dd4bf", "#e879f9"];
+$("btn-add-cat").onclick = async () => {
+  $("cat-error").textContent = "";
+  const name = $("new-cat-name").value.trim();
+  const budget = Number($("new-cat-budget").value || 0);
+  if (!name) { $("cat-error").textContent = "Give the category a name first."; return; }
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  if (!slug || plan.categories.some((c) => c.id === slug)) {
+    $("cat-error").textContent = "A category with that name already exists.";
+    return;
+  }
+  const state = readPlanEditor();
+  state.categories.push({
+    id: slug, name, budget, carryOver: false,
+    color: CAT_COLORS[state.categories.length % CAT_COLORS.length],
   });
+  await savePlanDoc(state);
+  $("new-cat-name").value = ""; $("new-cat-budget").value = "";
 };
+
+async function deleteCategory(idx) {
+  const cat = plan.categories[idx];
+  if (!cat) return;
+  $("cat-error").textContent = "";
+  if (expenses.some((e) => e.categoryId === cat.id)) {
+    $("cat-error").textContent =
+      `"${cat.name}" has expenses logged under it, so it can't be deleted. Delete or reassign those expenses first — or just rename it.`;
+    return;
+  }
+  const state = readPlanEditor();
+  state.categories.splice(idx, 1);
+  await savePlanDoc(state);
+}

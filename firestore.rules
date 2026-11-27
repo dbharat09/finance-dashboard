@@ -61,6 +61,9 @@ service cloud.firestore {
       match /expenses/{expenseId} {
         allow read, write: if isMember(hid);
       }
+      match /savings/{transferId} {
+        allow read, write: if isMember(hid);
+      }
     }
   }
 }

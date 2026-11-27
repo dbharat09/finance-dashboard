@@ -29,7 +29,6 @@ const DEFAULT_PLAN = { income: 6000, savingsTarget: 1500, categories: DEFAULT_CA
 let app, auth, db, user = null, householdId = null;
 let plan = structuredClone(DEFAULT_PLAN);
 let expenses = [];           // all expenses for the household
-let savings = [];            // all savings transfers for the household
 let editingId = null;        // expense id currently loaded in the form, if any
 let viewMonth = monthKey(new Date());
 let pieChart = null;
@@ -157,11 +156,6 @@ function subscribeHousehold() {
       render();
     }
   }));
-  const sq = query(collection(db, "households", householdId, "savings"), orderBy("date", "desc"));
-  unsubscribers.push(onSnapshot(sq, (s) => {
-    savings = s.docs.map((d) => ({ id: d.id, ...d.data() }));
-    render();
-  }));
   const q = query(collection(db, "households", householdId, "expenses"), orderBy("date", "desc"));
   unsubscribers.push(onSnapshot(q, (s) => {
     expenses = s.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -222,40 +216,20 @@ function render() {
   perCat.sort((a, b) => (b.ratio - a.ratio) || (b.spent - a.spent));
 
   $("plan-line").textContent =
-    `Income ${money(plan.income)} · spending plan ${money(plan.income - plan.savingsTarget)} · savings goal ${money(plan.savingsTarget)} — moved to your savings account as a transfer` +
+    `Income ${money(plan.income)} − savings target ${money(plan.savingsTarget)} = ${money(plan.income - plan.savingsTarget)} spending plan` +
     (effTotal !== plan.income - plan.savingsTarget ? ` · effective budget this month ${money(effTotal)} with carry-overs` : "");
   $("sum-income").textContent = money(plan.income);
   $("sum-spent").textContent = money(spentTotal);
   $("sum-left").textContent = money(effTotal - spentTotal);
-  // Savings is NOT income minus spending. It is the money actually moved
-  // to the other account, logged transfer by transfer.
-  const savedMonth = savings.filter((t) => t.date.startsWith(viewMonth))
-    .reduce((a, t) => a + Number(t.amount), 0);
-  const savedTotal = savings.reduce((a, t) => a + Number(t.amount), 0);
-  $("sum-savings").textContent = money(savedMonth);
-  const pct = plan.savingsTarget > 0
-    ? Math.max(0, Math.min(100, (savedMonth / plan.savingsTarget) * 100)) : 0;
+  const projected = plan.income - spentTotal;
+  $("sum-savings").textContent = money(projected);
+  const pct = Math.max(0, Math.min(100, (projected / plan.savingsTarget) * 100));
   const bar = $("savings-bar");
   bar.style.width = pct + "%";
-  bar.classList.toggle("over", savedMonth < plan.savingsTarget);
-  $("savings-note").textContent = savedMonth >= plan.savingsTarget
-    ? `Goal reached — ${money(plan.savingsTarget)} transferred`
-    : `${money(plan.savingsTarget - savedMonth)} to go of the ${money(plan.savingsTarget)} goal`;
-
-  // Savings card: this month's transfers + all-time total
-  $("sav-month").textContent = money(savedMonth);
-  $("sav-total").textContent = money(savedTotal);
-  if (!$("sav-date").value) $("sav-date").value = new Date().toISOString().slice(0, 10);
-  const savList = savings.filter((t) => t.date.startsWith(viewMonth));
-  $("savings-list").innerHTML = savList.length ? savList.map((t) =>
-    `<li><span class="dot" style="background:#22c55e"></span>
-      <span>${t.date.slice(5)} · Savings transfer${t.note ? " — " + t.note : ""}</span>
-      <span class="amt">${money(t.amount)}</span>
-      <button data-sdel="${t.id}">✕</button></li>`).join("")
-    : `<li class="muted">No savings transfer logged this month yet.</li>`;
-  document.querySelectorAll("[data-sdel]").forEach((b) => {
-    b.onclick = () => deleteDoc(doc(db, "households", householdId, "savings", b.dataset.sdel));
-  });
+  bar.classList.toggle("over", projected < plan.savingsTarget);
+  $("savings-note").textContent = projected >= plan.savingsTarget
+    ? `On track — target ${money(plan.savingsTarget)}`
+    : `Below the ${money(plan.savingsTarget)} target`;
 
   // Category cards
   $("category-cards").innerHTML = perCat.map(({ cat, effective, carriedIn, spent, remaining, ratio }) => {
@@ -330,18 +304,6 @@ function render() {
 $("month-prev").onclick = () => { viewMonth = shiftMonth(viewMonth, -1); render(); };
 $("month-next").onclick = () => { viewMonth = shiftMonth(viewMonth, 1); render(); };
 $("month-today").onclick = () => { viewMonth = monthKey(new Date()); render(); };
-
-$("savings-form").onsubmit = async (ev) => {
-  ev.preventDefault();
-  await addDoc(collection(db, "households", householdId, "savings"), {
-    date: $("sav-date").value,
-    amount: Number($("sav-amount").value),
-    note: $("sav-note").value.trim(),
-    createdBy: user.uid,
-    createdAt: serverTimestamp(),
-  });
-  $("sav-amount").value = ""; $("sav-note").value = "";
-};
 
 // ---------- Expense editing ----------
 function startEditExpense(id) {

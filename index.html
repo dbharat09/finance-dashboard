@@ -119,7 +119,13 @@
           <button id="btn-save-plan" class="primary">Save plan</button>
         </div>
         <div id="plan-categories"></div>
-        <p class="muted small">Carry-over ON: whatever you don't spend in that category rolls into next month's budget for the same category. Overspending never carries over.</p>
+        <div class="row wrap">
+          <label>New category name <input id="new-cat-name" type="text" placeholder="e.g. Gym" /></label>
+          <label>Budget ($) <input id="new-cat-budget" type="number" min="0" step="1" /></label>
+          <button id="btn-add-cat" type="button">Add category</button>
+        </div>
+        <p id="cat-error" class="error"></p>
+        <p class="muted small">Edit a category's name, budget or carry-over right in its row, then Save plan. Carry-over ON: whatever you don't spend in that category rolls into next month's budget for the same category. Overspending never carries over.</p>
       </div>
     </div>
   </section>

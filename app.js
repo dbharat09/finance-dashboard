@@ -22,7 +22,6 @@ const DEFAULT_CATEGORIES = [
   { id: "entertainment", name: "Entertainment",       budget: 100,  carryOver: true,  color: "#06b6d4" },
   { id: "travel",      name: "Travel",                budget: 150,  carryOver: true,  color: "#3b82f6" },
   { id: "buffer",      name: "Buffer / Miscellaneous", budget: 124, carryOver: true,  color: "#64748b" },
-  { id: "savings",     name: "Savings",               budget: 1500, carryOver: false, color: "#eab308" },
 ];
 const DEFAULT_PLAN = { income: 6000, savingsTarget: 1500, categories: DEFAULT_CATEGORIES };
 
@@ -216,29 +215,21 @@ function render() {
   // to blowing their budget float to the top so they are seen first.
   perCat.sort((a, b) => (b.ratio - a.ratio) || (b.spent - a.spent));
 
-  const baseTotal = plan.categories.reduce((a, c) => a + Number(c.budget), 0);
   $("plan-line").textContent =
     `Income ${money(plan.income)} − savings target ${money(plan.savingsTarget)} = ${money(plan.income - plan.savingsTarget)} spending plan` +
-    (effTotal !== baseTotal ? ` · effective budget this month ${money(effTotal)} with carry-overs` : "");
+    (effTotal !== plan.income - plan.savingsTarget ? ` · effective budget this month ${money(effTotal)} with carry-overs` : "");
   $("sum-income").textContent = money(plan.income);
   $("sum-spent").textContent = money(spentTotal);
   $("sum-left").textContent = money(effTotal - spentTotal);
-  // "Saved" = what was actually logged under the Savings category (the
-  // transfer to the other account). It counts as money out, like any
-  // other expense — it is not a leftover computed from income.
-  const savCat = plan.categories.find((c) => c.id === "savings" || c.name.trim().toLowerCase() === "savings");
-  const savedMonth = savCat ? spentIn(savCat.id, viewMonth) : 0;
-  $("sum-savings").textContent = money(savedMonth);
-  const pct = plan.savingsTarget > 0
-    ? Math.max(0, Math.min(100, (savedMonth / plan.savingsTarget) * 100)) : 0;
+  const projected = plan.income - spentTotal;
+  $("sum-savings").textContent = money(projected);
+  const pct = Math.max(0, Math.min(100, (projected / plan.savingsTarget) * 100));
   const bar = $("savings-bar");
   bar.style.width = pct + "%";
-  bar.classList.toggle("over", savedMonth < plan.savingsTarget);
-  $("savings-note").textContent = !savCat
-    ? "Add a Savings category in the plan to track it"
-    : savedMonth >= plan.savingsTarget
-      ? `Goal reached — ${money(plan.savingsTarget)} saved`
-      : `${money(plan.savingsTarget - savedMonth)} to go of the ${money(plan.savingsTarget)} goal`;
+  bar.classList.toggle("over", projected < plan.savingsTarget);
+  $("savings-note").textContent = projected >= plan.savingsTarget
+    ? `On track — target ${money(plan.savingsTarget)}`
+    : `Below the ${money(plan.savingsTarget)} target`;
 
   // Category cards
   $("category-cards").innerHTML = perCat.map(({ cat, effective, carriedIn, spent, remaining, ratio }) => {
@@ -366,36 +357,6 @@ $("expenses-toggle").onclick = () => {
   const open = card.classList.toggle("open");
   $("expenses-body").classList.toggle("hidden", !open);
   $("expenses-toggle").setAttribute("aria-expanded", String(open));
-};
-
-const CAT_COLORS = ["#eab308", "#f43f5e", "#0ea5e9", "#a855f7", "#84cc16", "#fb923c", "#2dd4bf", "#e879f9"];
-$("btn-add-cat").onclick = async () => {
-  $("cat-error").textContent = "";
-  const name = $("new-cat-name").value.trim();
-  const budget = Number($("new-cat-budget").value || 0);
-  if (!name) { $("cat-error").textContent = "Give the category a name first."; return; }
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  if (!slug || plan.categories.some((c) => c.id === slug)) {
-    $("cat-error").textContent = "A category with that name already exists.";
-    return;
-  }
-  // Preserve whatever is currently typed in the plan editor rows.
-  const categories = plan.categories.map((c, i) => ({
-    ...c,
-    budget: Number(document.querySelector(`[data-budget="${i}"]`).value || 0),
-    carryOver: document.querySelector(`[data-carry="${i}"]`).checked,
-  }));
-  categories.push({
-    id: slug, name, budget, carryOver: false,
-    color: CAT_COLORS[categories.length % CAT_COLORS.length],
-  });
-  await setDoc(doc(db, "households", householdId, "meta", "plan"), {
-    income: Number($("plan-income").value || 0),
-    savingsTarget: Number($("plan-savings").value || 0),
-    startMonth: $("plan-start").value || plan.startMonth || monthKey(new Date()),
-    categories,
-  });
-  $("new-cat-name").value = ""; $("new-cat-budget").value = "";
 };
 
 $("btn-save-plan").onclick = async () => {

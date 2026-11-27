@@ -30,6 +30,7 @@ let app, auth, db, user = null, householdId = null;
 let plan = structuredClone(DEFAULT_PLAN);
 let expenses = [];           // all expenses for the household
 let savings = [];            // all savings transfers for the household
+let editingId = null;        // expense id currently loaded in the form, if any
 let viewMonth = monthKey(new Date());
 let pieChart = null;
 let unsubscribers = [];
@@ -303,10 +304,14 @@ function render() {
     return `<li><span class="dot" style="background:${cat ? cat.color : "#999"}"></span>
       <span>${e.date.slice(5)} · ${cat ? cat.name : "?"}${e.note ? " — " + e.note : ""}</span>
       <span class="amt">${money(e.amount)}</span>
-      <button data-del="${e.id}">✕</button></li>`;
+      <button data-edit="${e.id}" title="Edit">✎</button>
+      <button data-del="${e.id}" title="Delete">✕</button></li>`;
   }).join("") : `<li class="muted">Nothing logged yet this month.</li>`;
   document.querySelectorAll("[data-del]").forEach((b) => {
     b.onclick = () => deleteDoc(doc(db, "households", householdId, "expenses", b.dataset.del));
+  });
+  document.querySelectorAll("[data-edit]").forEach((b) => {
+    b.onclick = () => startEditExpense(b.dataset.edit);
   });
 
   // Plan editor
@@ -338,17 +343,44 @@ $("savings-form").onsubmit = async (ev) => {
   $("sav-amount").value = ""; $("sav-note").value = "";
 };
 
+// ---------- Expense editing ----------
+function startEditExpense(id) {
+  const e = expenses.find((x) => x.id === id);
+  if (!e) return;
+  editingId = id;
+  $("exp-date").value = e.date;
+  $("exp-amount").value = e.amount;
+  $("exp-category").value = e.categoryId;
+  $("exp-note").value = e.note || "";
+  $("exp-submit").textContent = "Save changes";
+  $("exp-cancel").classList.remove("hidden");
+  $("expense-form").scrollIntoView({ behavior: "smooth", block: "center" });
+  $("exp-amount").focus();
+}
+function resetExpenseForm() {
+  editingId = null;
+  $("exp-submit").textContent = "Add expense";
+  $("exp-cancel").classList.add("hidden");
+  $("exp-amount").value = ""; $("exp-note").value = "";
+}
+$("exp-cancel").onclick = resetExpenseForm;
+
 $("expense-form").onsubmit = async (ev) => {
   ev.preventDefault();
-  await addDoc(collection(db, "households", householdId, "expenses"), {
+  const data = {
     date: $("exp-date").value,
     amount: Number($("exp-amount").value),
     categoryId: $("exp-category").value,
     note: $("exp-note").value.trim(),
-    createdBy: user.uid,
-    createdAt: serverTimestamp(),
-  });
-  $("exp-amount").value = ""; $("exp-note").value = "";
+  };
+  if (editingId) {
+    await updateDoc(doc(db, "households", householdId, "expenses", editingId), data);
+  } else {
+    await addDoc(collection(db, "households", householdId, "expenses"), {
+      ...data, createdBy: user.uid, createdAt: serverTimestamp(),
+    });
+  }
+  resetExpenseForm();
 };
 
 $("plan-toggle").onclick = () => {

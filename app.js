@@ -307,6 +307,13 @@ $("plan-toggle").onclick = () => {
   $("plan-toggle").setAttribute("aria-expanded", String(open));
 };
 
+$("expenses-toggle").onclick = () => {
+  const card = $("expenses-card");
+  const open = card.classList.toggle("open");
+  $("expenses-body").classList.toggle("hidden", !open);
+  $("expenses-toggle").setAttribute("aria-expanded", String(open));
+};
+
 $("btn-save-plan").onclick = async () => {
   const categories = plan.categories.map((c, i) => ({
     ...c,

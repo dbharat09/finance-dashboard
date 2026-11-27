@@ -66,26 +66,10 @@
       <div class="card summary"><span class="label">Income</span><span id="sum-income" class="big">$0</span></div>
       <div class="card summary"><span class="label">Total spent</span><span id="sum-spent" class="big">$0</span></div>
       <div class="card summary"><span class="label">Left to spend</span><span id="sum-left" class="big">$0</span></div>
-      <div class="card summary"><span class="label">Saved this month</span><span id="sum-savings" class="big">$0</span>
+      <div class="card summary"><span class="label">Projected savings</span><span id="sum-savings" class="big">$0</span>
         <div class="bar"><div id="savings-bar" class="fill"></div></div>
         <span id="savings-note" class="muted small"></span>
       </div>
-    </div>
-
-    <div class="card savings-card">
-      <h3>💰 Savings</h3>
-      <p class="muted small">Savings is the money you actually move to your other account — not what's left over. Log each transfer here.</p>
-      <div class="savings-stats">
-        <div class="summary"><span class="label">Saved this month</span><span id="sav-month" class="big">$0</span></div>
-        <div class="summary"><span class="label">Total saved (all time)</span><span id="sav-total" class="big">$0</span></div>
-      </div>
-      <form id="savings-form" class="row wrap">
-        <label>Date <input id="sav-date" type="date" required /></label>
-        <label>Amount ($) <input id="sav-amount" type="number" min="0.01" step="0.01" required /></label>
-        <label>Note (optional) <input id="sav-note" type="text" placeholder="e.g. Transfer to savings account" /></label>
-        <button class="primary" type="submit">Add transfer</button>
-      </form>
-      <ul id="savings-list" class="expenses"></ul>
     </div>
 
     <div class="grid">
@@ -130,7 +114,7 @@
       <div class="accordion-body hidden" id="plan-body">
         <div class="row wrap">
           <label>Monthly income ($) <input id="plan-income" type="number" min="0" step="1" /></label>
-          <label>Monthly savings goal ($) <input id="plan-savings" type="number" min="0" step="1" /></label>
+          <label>Savings target ($) <input id="plan-savings" type="number" min="0" step="1" /></label>
           <label>Tracking starts (month) <input id="plan-start" type="month" /></label>
           <button id="btn-save-plan" class="primary">Save plan</button>
         </div>
